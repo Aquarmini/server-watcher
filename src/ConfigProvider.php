@@ -11,6 +11,8 @@ declare(strict_types=1);
  */
 namespace Hyperf\ServerWatcher;
 
+use Hyperf\ServerWatcher\Command\WatchCommand;
+
 class ConfigProvider
 {
     public function __invoke(): array
@@ -19,12 +21,21 @@ class ConfigProvider
             'dependencies' => [
             ],
             'commands' => [
+                WatchCommand::class,
             ],
             'annotations' => [
                 'scan' => [
                     'paths' => [
                         __DIR__,
                     ],
+                ],
+            ],
+            'publish' => [
+                [
+                    'id' => 'config',
+                    'description' => 'The config for watcher.',
+                    'source' => __DIR__ . '/../publish/watcher.php',
+                    'destination' => BASE_PATH . '/config/autoload/watcher.php',
                 ],
             ],
         ];
