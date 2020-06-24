@@ -146,7 +146,9 @@ class Watcher
                 $meta = $this->getMetadata($file);
                 if ($meta) {
                     $ret = System::exec('php vendor/bin/collector-reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
-                    var_dump($ret);
+                    if($ret['code'] === 0){
+                        $this->output->writeln('Class reload success.');
+                    }
                 }
                 $result[] = $file;
             }
