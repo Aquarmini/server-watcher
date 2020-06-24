@@ -145,7 +145,8 @@ class Watcher
                 // 重写缓存
                 $meta = $this->getMetadata($file);
                 if ($meta) {
-                    System::exec('php vendor/bin/collector-reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
+                    $ret = System::exec('php vendor/bin/collector-reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
+                    var_dump($ret);
                 }
                 $result[] = $file;
             }

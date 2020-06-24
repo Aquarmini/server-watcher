@@ -14,6 +14,7 @@ namespace Hyperf\ServerWatcher;
 use Hyperf\Di\Annotation\AnnotationInterface;
 use Hyperf\Di\Annotation\AnnotationReader;
 use Hyperf\Di\Annotation\ScanConfig;
+use Hyperf\Di\Aop\ProxyManager;
 use Hyperf\Di\BetterReflectionManager;
 use Hyperf\Di\MetadataCollector;
 use Hyperf\Utils\Filesystem\Filesystem;
@@ -90,6 +91,14 @@ class Process
         if ($data) {
             $this->putCache($this->path, serialize($data));
         }
+
+        // 重做代理类
+        $manager = new ProxyManager([], [$this->class => $this->file], BASE_PATH . '/runtime/container/proxy/');
+        $ref = new \ReflectionClass($manager);
+        $method = $ref->getMethod('generateProxyFiles');
+        $method->setAccessible(true);
+        $res = $method->invokeArgs($manager, [$this->class => []]);
+        var_dump($res);
     }
 
     public function collect($className, ReflectionClass $reflection)
