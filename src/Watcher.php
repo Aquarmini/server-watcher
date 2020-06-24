@@ -96,6 +96,11 @@ class Watcher
     protected $printer;
 
     /**
+     * @var Channel
+     */
+    protected $channel;
+
+    /**
      * @var string
      */
     protected $path = BASE_PATH . '/runtime/container/collectors.cache';
@@ -114,6 +119,8 @@ class Watcher
         $this->config = ScanConfig::instance('/');
         $this->ast = new Ast();
         $this->printer = new Standard();
+        $this->channel = new Channel(1);
+        $this->channel->push(true);
     }
 
     public function run()
@@ -127,30 +134,18 @@ class Watcher
 
         $result = [];
         while (true) {
-            $file = $channel->pop(1);
+            $file = $channel->pop(0.001);
             if ($file === false) {
                 if (count($result) > 0) {
                     $result = [];
-                    // 重启 Server
-                    $collectors = $this->config->getCollectors();
-                    $data = [];
-                    foreach ($collectors as $collector) {
-                        $data[$collector] = $collector::serialize();
-                    }
-
-                    if ($data) {
-                        $this->putCache($this->path, serialize($data));
-                    }
+                    // 重启服务
+                    $this->restart(false);
                 }
             } else {
                 // 重写缓存
                 $meta = $this->getMetadata($file);
-                if ($meta->isClass()) {
-                    $className = $meta->toClassName();
-                    if (class_exists($className)) {
-                        $ref = $this->reflection->classReflector()->reflect($className);
-                        $this->collect($className, $ref);
-                    }
+                if ($meta) {
+                    System::exec('php reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
                 }
                 $result[] = $file;
             }
@@ -199,14 +194,19 @@ class Watcher
         if (! $isStart) {
             $pid = $this->filesystem->get(BASE_PATH . '/runtime/hyperf.pid');
             try {
-                Process::kill($pid, SIGTERM);
+                $this->output->writeln('Stop server...');
+                Process::kill((int) $pid, SIGTERM);
             } catch (\Throwable $exception) {
-                $this->output->writeln($exception->getMessage());
+                $this->output->writeln('Stop server failed. Please execute `composer dump-autoload -o`');
             }
         }
 
         go(function () {
-            System::exec('php bin/hyperf.php start');
+            $this->channel->pop();
+            $this->output->writeln('Start server ...');
+            $ret = System::exec('SCAN_CACHEABLE=(true) && php bin/hyperf.php start');
+            $this->output->writeln('Stop server success');
+            $this->channel->push($ret);
         });
     }
 
@@ -219,21 +219,23 @@ class Watcher
         $this->filesystem->put($path, $data);
     }
 
-    protected function getMetadata(string $file): Metadata
+    protected function getMetadata(string $file): ?Metadata
     {
         $stmts = $this->ast->parse($this->filesystem->get($file));
         $meta = new Metadata();
         $traverser = new NodeTraverser();
         $traverser->addVisitor(new RewriteClassNameVisitor($meta));
         $modifiedStmts = $traverser->traverse($stmts);
+        if (! $meta->isClass()) {
+            return null;
+        }
         $code = $this->printer->prettyPrintFile($modifiedStmts);
-
         $path = BASE_PATH . '/runtime/watcher/';
         if (! is_dir($path)) {
             $this->filesystem->makeDirectory($path, 0777, true);
         }
         $this->filesystem->put($path . $meta->proxyName, $code);
-        require_once $path . $meta->proxyName;
+        $meta->path = $path . $meta->proxyName;
         return $meta;
     }
 

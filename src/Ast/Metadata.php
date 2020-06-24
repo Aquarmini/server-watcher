@@ -28,6 +28,11 @@ class Metadata
      */
     public $proxyName;
 
+    /**
+     * @var string
+     */
+    public $path;
+
     public function isClass(): bool
     {
         return $this->className !== null;

@@ -36,9 +36,6 @@ class RewriteClassNameVisitor extends NodeVisitorAbstract
                 $className = $node->name->name;
                 $this->metadata->className = $className;
                 $this->metadata->proxyName = $className . uniqid();
-                $node->name = new Node\Identifier(
-                    $this->metadata->proxyName
-                );
                 return $node;
         }
     }
