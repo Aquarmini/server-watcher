@@ -9,12 +9,12 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace Hyperf\ServerWatcher\Command;
+namespace Hyperf\Watcher\Command;
 
 use Hyperf\Command\Command;
 use Hyperf\Contract\ContainerInterface;
-use Hyperf\ServerWatcher\Option;
-use Hyperf\ServerWatcher\Watcher;
+use Hyperf\Watcher\Option;
+use Hyperf\Watcher\Watcher;
 use Symfony\Component\Console\Input\InputOption;
 
 class WatchCommand extends Command

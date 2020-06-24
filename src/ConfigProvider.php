@@ -9,9 +9,9 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace Hyperf\ServerWatcher;
+namespace Hyperf\Watcher;
 
-use Hyperf\ServerWatcher\Command\WatchCommand;
+use Hyperf\Watcher\Command\WatchCommand;
 
 class ConfigProvider
 {

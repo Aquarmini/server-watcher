@@ -9,9 +9,9 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace Hyperf\ServerWatcher\Driver;
+namespace Hyperf\Watcher\Driver;
 
-use Hyperf\ServerWatcher\Option;
+use Hyperf\Watcher\Option;
 use Hyperf\Utils\Str;
 use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\System;

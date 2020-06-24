@@ -1,5 +1,5 @@
 {
-    "name": "hyperf/server-watcher",
+    "name": "hyperf/watcher",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -9,7 +9,7 @@
     "description": "",
     "autoload": {
         "psr-4": {
-            "Hyperf\\ServerWatcher\\": "src/"
+            "Hyperf\\Watcher\\": "src/"
         }
     },
     "autoload-dev": {
@@ -35,7 +35,7 @@
     },
     "bin": [
         "collector-reload.php",
-        "hyperf.php"
+        "watcher.php"
     ],
     "scripts": {
         "test": "co-phpunit -c phpunit.xml --colors=always",
@@ -44,7 +44,7 @@
     },
     "extra": {
         "hyperf": {
-            "config": "Hyperf\\ServerWatcher\\ConfigProvider"
+            "config": "Hyperf\\Watcher\\ConfigProvider"
         }
     }
 }

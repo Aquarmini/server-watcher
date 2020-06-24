@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace Hyperf\ServerWatcher;
+namespace Hyperf\Watcher;
 
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\Di\Annotation\AnnotationInterface;
@@ -17,10 +17,10 @@ use Hyperf\Di\Annotation\AnnotationReader;
 use Hyperf\Di\Annotation\ScanConfig;
 use Hyperf\Di\Aop\Ast;
 use Hyperf\Di\ClassLoader;
-use Hyperf\ServerWatcher\Ast\Metadata;
-use Hyperf\ServerWatcher\Ast\RewriteClassNameVisitor;
-use Hyperf\ServerWatcher\Driver\DriverInterface;
-use Hyperf\ServerWatcher\Driver\FswatchDriver;
+use Hyperf\Watcher\Ast\Metadata;
+use Hyperf\Watcher\Ast\RewriteClassNameVisitor;
+use Hyperf\Watcher\Driver\DriverInterface;
+use Hyperf\Watcher\Driver\FswatchDriver;
 use Hyperf\Utils\Codec\Json;
 use Hyperf\Utils\Filesystem\Filesystem;
 use PhpParser\NodeTraverser;
@@ -146,7 +146,7 @@ class Watcher
                 $meta = $this->getMetadata($file);
                 if ($meta) {
                     $ret = System::exec('php vendor/bin/collector-reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
-                    if($ret['code'] === 0){
+                    if ($ret['code'] === 0) {
                         $this->output->writeln('Class reload success.');
                     }
                 }
@@ -207,7 +207,7 @@ class Watcher
         go(function () {
             $this->channel->pop();
             $this->output->writeln('Start server ...');
-            $ret = System::exec('php vendor/bin/hyperf.php start');
+            $ret = System::exec('php vendor/bin/watcher.php start');
             $this->output->writeln('Stop server success');
             $this->channel->push($ret);
         });

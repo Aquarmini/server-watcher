@@ -20,7 +20,7 @@ date_default_timezone_set('Asia/Shanghai');
 
 require BASE_PATH . '/vendor/autoload.php';
 
-use Hyperf\ServerWatcher\Process;
+use Hyperf\Watcher\Process;
 
 $process = new Process($argv[1], $argv[2]);
 $process();
