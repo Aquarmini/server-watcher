@@ -97,8 +97,7 @@ class Process
         $ref = new \ReflectionClass($manager);
         $method = $ref->getMethod('generateProxyFiles');
         $method->setAccessible(true);
-        $res = $method->invokeArgs($manager, [$this->class => []]);
-        var_dump($res);
+        $method->invokeArgs($manager, [$this->class => []]);
     }
 
     public function collect($className, ReflectionClass $reflection)

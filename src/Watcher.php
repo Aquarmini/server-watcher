@@ -224,19 +224,13 @@ class Watcher
     {
         $stmts = $this->ast->parse($this->filesystem->get($file));
         $meta = new Metadata();
+        $meta->path = $file;
         $traverser = new NodeTraverser();
         $traverser->addVisitor(new RewriteClassNameVisitor($meta));
-        $modifiedStmts = $traverser->traverse($stmts);
+        $traverser->traverse($stmts);
         if (! $meta->isClass()) {
             return null;
         }
-        $code = $this->printer->prettyPrintFile($modifiedStmts);
-        $path = BASE_PATH . '/runtime/watcher/';
-        if (! is_dir($path)) {
-            $this->filesystem->makeDirectory($path, 0777, true);
-        }
-        $this->filesystem->put($path . $meta->proxyName, $code);
-        $meta->path = $path . $meta->proxyName;
         return $meta;
     }
 
