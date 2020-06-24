@@ -33,6 +33,9 @@
     "config": {
         "sort-packages": true
     },
+    "bin": [
+        "collector-reload.php"
+    ],
     "scripts": {
         "test": "co-phpunit -c phpunit.xml --colors=always",
         "analyse": "phpstan analyse --memory-limit 1024M -l 0 ./src",
