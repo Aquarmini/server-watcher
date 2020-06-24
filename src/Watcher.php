@@ -145,7 +145,7 @@ class Watcher
                 // 重写缓存
                 $meta = $this->getMetadata($file);
                 if ($meta) {
-                    System::exec('php reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
+                    System::exec('php vendor/bin/collector-reload.php ' . $meta->path . ' ' . str_replace('\\', '\\\\', $meta->toClassName()));
                 }
                 $result[] = $file;
             }
@@ -204,7 +204,7 @@ class Watcher
         go(function () {
             $this->channel->pop();
             $this->output->writeln('Start server ...');
-            $ret = System::exec('SCAN_CACHEABLE=(true) && php bin/hyperf.php start');
+            $ret = System::exec('php vendor/bin/hyperf.php start');
             $this->output->writeln('Stop server success');
             $this->channel->push($ret);
         });

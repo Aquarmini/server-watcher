@@ -34,7 +34,8 @@
         "sort-packages": true
     },
     "bin": [
-        "collector-reload.php"
+        "collector-reload.php",
+        "hyperf.php"
     ],
     "scripts": {
         "test": "co-phpunit -c phpunit.xml --colors=always",
