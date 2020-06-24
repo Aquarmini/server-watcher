@@ -33,9 +33,6 @@ class WatchCommand extends Command
 
     public function handle()
     {
-        $options = array_merge(['app', 'config'], $this->input->getOption('dir'));
-        $files = array_merge(['.env'], $this->input->getOption('file'));
-
         $option = make(Option::class, [
             'dir' => $this->input->getOption('dir'),
             'file' => $this->input->getOption('file'),
