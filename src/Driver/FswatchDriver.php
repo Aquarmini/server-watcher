@@ -35,10 +35,15 @@ class FswatchDriver implements DriverInterface
     public function watch(Channel $channel): void
     {
         $cmd = $this->getCmd();
+        $process = proc_open($cmd, [['pipe', 'r'], ['pipe', 'w']], $pipes);
+        if (! is_resource($process)) {
+            throw new \RuntimeException('fswatch failed.');
+        }
+
         while (true) {
-            $ret = System::exec($cmd);
+            $ret = fread($pipes[1], 8192);
             go(function () use ($ret, $channel) {
-                $files = array_filter(explode("\n", $ret['output']));
+                $files = array_filter(explode("\n", $ret));
                 foreach ($files as $file) {
                     if (Str::endsWith($file, $this->option->getExt())) {
                         $channel->push($file);
@@ -53,6 +58,6 @@ class FswatchDriver implements DriverInterface
         $dir = $this->option->getWatchDir();
         $file = $this->option->getWatchFile();
 
-        return 'fswatch -1 ' . implode(' ', $dir) . ' ' . implode(' ', $file);
+        return 'fswatch ' . implode(' ', $dir) . ' ' . implode(' ', $file);
     }
 }

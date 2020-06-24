@@ -12,14 +12,19 @@ declare(strict_types=1);
 namespace Hyperf\ServerWatcher;
 
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\Di\Annotation\AnnotationInterface;
 use Hyperf\Di\Annotation\AnnotationReader;
 use Hyperf\Di\Annotation\ScanConfig;
+use Hyperf\Di\Aop\Ast;
 use Hyperf\Di\ClassLoader;
+use Hyperf\ServerWatcher\Ast\Metadata;
+use Hyperf\ServerWatcher\Ast\RewriteClassNameVisitor;
 use Hyperf\ServerWatcher\Driver\DriverInterface;
 use Hyperf\ServerWatcher\Driver\FswatchDriver;
 use Hyperf\Utils\Codec\Json;
 use Hyperf\Utils\Filesystem\Filesystem;
-use Hyperf\Utils\Str;
+use PhpParser\NodeTraverser;
+use PhpParser\PrettyPrinter\Standard;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflection\Adapter;
 use Roave\BetterReflection\Reflection\ReflectionClass;
@@ -81,6 +86,16 @@ class Watcher
     protected $config;
 
     /**
+     * @var Ast
+     */
+    protected $ast;
+
+    /**
+     * @var Standard
+     */
+    protected $printer;
+
+    /**
      * @var string
      */
     protected $path = BASE_PATH . '/runtime/container/collectors.cache';
@@ -97,6 +112,8 @@ class Watcher
         $this->reflection = new BetterReflection();
         $this->reader = new AnnotationReader();
         $this->config = ScanConfig::instance('/');
+        $this->ast = new Ast();
+        $this->printer = new Standard();
     }
 
     public function run()
@@ -115,7 +132,7 @@ class Watcher
                 if (count($result) > 0) {
                     $result = [];
                     // 重启 Server
-                    $collectors = $this->scanConfig->getCollectors();
+                    $collectors = $this->config->getCollectors();
                     $data = [];
                     foreach ($collectors as $collector) {
                         $data[$collector] = $collector::serialize();
@@ -125,21 +142,23 @@ class Watcher
                         $this->putCache($this->path, serialize($data));
                     }
                 }
+            } else {
+                // 重写缓存
+                $meta = $this->getMetadata($file);
+                if ($meta->isClass()) {
+                    $className = $meta->toClassName();
+                    if (class_exists($className)) {
+                        $ref = $this->reflection->classReflector()->reflect($className);
+                        $this->collect($className, $ref);
+                    }
+                }
+                $result[] = $file;
             }
-
-            // 重写缓存
-            $className = $this->getClassName($file);
-            if (class_exists($className)) {
-                $ref = $this->reflection->classReflector()->reflect($className);
-                $this->collect($ref);
-            }
-            $result[] = $file;
         }
     }
 
-    public function collect(ReflectionClass $reflection)
+    public function collect($className, ReflectionClass $reflection)
     {
-        $className = $reflection->getName();
         // Parse class annotations
         $classAnnotations = $this->reader->getClassAnnotations(new Adapter\ReflectionClass($reflection));
         if (! empty($classAnnotations)) {
@@ -200,20 +219,22 @@ class Watcher
         $this->filesystem->put($path, $data);
     }
 
-    protected function getClassName(string $file): string
+    protected function getMetadata(string $file): Metadata
     {
-        $name = Str::replaceFirst(BASE_PATH, '', $file);
-        $class = trim($name, '/');
-        foreach ($this->autoload as $search => $replace) {
-            $class = Str::replaceFirst($search, $replace, $class);
-        }
+        $stmts = $this->ast->parse($this->filesystem->get($file));
+        $meta = new Metadata();
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor(new RewriteClassNameVisitor($meta));
+        $modifiedStmts = $traverser->traverse($stmts);
+        $code = $this->printer->prettyPrintFile($modifiedStmts);
 
-        $class = str_replace('/', '\\', $class);
-        foreach ($this->option->getExt() as $ext) {
-            $class = Str::replaceLast($ext, '', $class);
+        $path = BASE_PATH . '/runtime/watcher/';
+        if (! is_dir($path)) {
+            $this->filesystem->makeDirectory($path, 0777, true);
         }
-
-        return $class;
+        $this->filesystem->put($path . $meta->proxyName, $code);
+        require_once $path . $meta->proxyName;
+        return $meta;
     }
 
     protected function getDriver()
