@@ -5,6 +5,8 @@ namespace Hyperf\ServerWatcher\Driver;
 
 
 use Hyperf\ServerWatcher\Option;
+use Hyperf\Utils\Str;
+use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\System;
 
 class FswatchDriver implements DriverInterface
@@ -23,8 +25,27 @@ class FswatchDriver implements DriverInterface
         }
     }
 
-    public function watch(): array
+    protected function getCmd(): string
     {
+        $dir = $this->option->getWatchDir();
+        $file = $this->option->getWatchFile();
 
+        return 'fswatch -1 ' . implode(' ', $dir) . ' ' . implode(' ', $file);
+    }
+
+    public function watch(Channel $channel): void
+    {
+        $cmd = $this->getCmd();
+        while (true) {
+            $ret = System::exec($cmd);
+            go(function () use ($ret, $channel) {
+                $files = array_filter(explode("\n", $ret['output']));
+                foreach ($files as $file) {
+                    if (Str::endsWith($file, $this->option->getExt())) {
+                        $channel->push($file);
+                    }
+                }
+            });
+        }
     }
 }

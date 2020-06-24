@@ -7,6 +7,7 @@ namespace Hyperf\ServerWatcher;
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\ServerWatcher\Driver\DriverInterface;
 use Hyperf\ServerWatcher\Driver\FswatchDriver;
+use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\System;
 
 class Watcher
@@ -35,13 +36,14 @@ class Watcher
 
     public function run()
     {
-        go(function () {
-            while (true) {
-                $paths = $this->driver->watch();
-
-                sleep(1);
-            }
+        $channel = new Channel(999);
+        go(function () use($channel) {
+            $this->driver->watch($channel);
         });
+
+        while ($file = $channel->pop()){
+            var_dump($file);
+        }
     }
 
     protected function getDriver()

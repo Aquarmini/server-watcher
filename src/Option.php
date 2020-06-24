@@ -19,14 +19,19 @@ class Option
     protected $driver = 'fswatch';
 
     /**
-     * @var array
+     * @var string[]
      */
     protected $watchDir = ['app', 'config'];
 
     /**
-     * @var array
+     * @var string[]
      */
     protected $watchFile = ['.env'];
+
+    /**
+     * @var string[]
+     */
+    protected $ext = ['.php', '.env'];
 
     public function __construct(ConfigInterface $config, array $dir, array $file)
     {
@@ -36,6 +41,7 @@ class Option
         isset($options['driver']) && $this->driver = $options['driver'];
         isset($options['watch']['dir']) && $this->watchDir = (array)$options['watch']['dir'];
         isset($options['watch']['file']) && $this->watchFile = (array)$options['watch']['file'];
+        isset($options['ext']) && $this->ext = (array) $options['ext'];
 
         $this->watchDir = array_unique(array_merge($this->watchDir, $dir));
         $this->watchFile = array_unique(array_merge($this->watchFile, $file));
@@ -59,5 +65,10 @@ class Option
     public function getWatchFile(): array
     {
         return $this->watchFile;
+    }
+
+    public function getExt(): array
+    {
+        return $this->ext;
     }
 }
