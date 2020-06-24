@@ -213,15 +213,6 @@ class Watcher
         });
     }
 
-    protected function putCache($path, $data)
-    {
-        if (! $this->filesystem->isDirectory($dir = dirname($path))) {
-            $this->filesystem->makeDirectory($dir, 0755, true);
-        }
-
-        $this->filesystem->put($path, $data);
-    }
-
     protected function getMetadata(string $file): ?Metadata
     {
         $stmts = $this->ast->parse($this->filesystem->get($file));
