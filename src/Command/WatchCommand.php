@@ -27,8 +27,8 @@ class WatchCommand extends Command
 
         $this->container = $container;
         $this->setDescription('watch command');
-        $this->addOption('file', 'F', InputOption::VALUE_OPTIONAL|InputOption::VALUE_IS_ARRAY,'', []);
-        $this->addOption('dir','D', InputOption::VALUE_OPTIONAL|InputOption::VALUE_IS_ARRAY,'', []);
+        $this->addOption('file', 'F', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, '', []);
+        $this->addOption('dir', 'D', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, '', []);
     }
 
     public function handle()
@@ -36,12 +36,15 @@ class WatchCommand extends Command
         $options = array_merge(['app', 'config'], $this->input->getOption('dir'));
         $files = array_merge(['.env'], $this->input->getOption('file'));
 
-        $option = make(Option::class,[
+        $option = make(Option::class, [
             'dir' => $this->input->getOption('dir'),
             'file' => $this->input->getOption('file'),
         ]);
 
-        $watcher = make(Watcher::class,['option' => $option]);
+        $watcher = make(Watcher::class, [
+            'option' => $option,
+            'output' => $this->output,
+        ]);
 
         $watcher->run();
     }

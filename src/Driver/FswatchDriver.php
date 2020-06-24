@@ -1,8 +1,15 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://doc.hyperf.io
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace Hyperf\ServerWatcher\Driver;
-
 
 use Hyperf\ServerWatcher\Option;
 use Hyperf\Utils\Str;
@@ -21,16 +28,8 @@ class FswatchDriver implements DriverInterface
         $this->option = $option;
         $ret = System::exec('which fswatch');
         if (empty($ret['output'])) {
-            throw new \InvalidArgumentException('fswatch not exists.');
+            throw new \InvalidArgumentException('fswatch not exists. You can `brew install fswatch` to install it.');
         }
-    }
-
-    protected function getCmd(): string
-    {
-        $dir = $this->option->getWatchDir();
-        $file = $this->option->getWatchFile();
-
-        return 'fswatch -1 ' . implode(' ', $dir) . ' ' . implode(' ', $file);
     }
 
     public function watch(Channel $channel): void
@@ -47,5 +46,13 @@ class FswatchDriver implements DriverInterface
                 }
             });
         }
+    }
+
+    protected function getCmd(): string
+    {
+        $dir = $this->option->getWatchDir();
+        $file = $this->option->getWatchFile();
+
+        return 'fswatch -1 ' . implode(' ', $dir) . ' ' . implode(' ', $file);
     }
 }
